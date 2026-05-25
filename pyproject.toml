@@ -40,6 +40,10 @@ dev = [
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
+markers = [
+    "integration: Integration tests against a live test server",
+    "docker: Docker build and run tests (requires Docker daemon)",
+]
 filterwarnings = [
     # Asyncio + AsyncMock can trigger GC warnings for coroutines
     # that were properly awaited via wait_for. This is a known

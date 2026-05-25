@@ -50,8 +50,8 @@ def build_full_report(
         },
         "scan_info": {},
         "subdomain_enumeration": {
-            "total_found": subdomain_report.total_found,
-            "total_resolved": subdomain_report.total_resolved,
+            "total_found": subdomain_report.total_found if subdomain_report else 0,
+            "total_resolved": subdomain_report.total_resolved if subdomain_report else 0,
             "results": [
                 {
                     "hostname": r.hostname,
@@ -59,7 +59,7 @@ def build_full_report(
                     "source": r.source,
                     "resolved": r.resolved,
                 }
-                for r in subdomain_report.results
+                for r in (subdomain_report.results if subdomain_report else [])
             ],
         },
         "advanced_subdomain_techniques": {},
