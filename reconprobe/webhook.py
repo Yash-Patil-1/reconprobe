@@ -18,7 +18,12 @@ from dataclasses import dataclass, field, asdict
 from email.message import EmailMessage
 from typing import Optional
 
-import aiohttp
+try:
+    import aiohttp
+    AIOHTTP_AVAILABLE = True
+except ImportError:
+    aiohttp = None  # type: ignore[assignment]
+    AIOHTTP_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -75,6 +80,9 @@ async def send_slack(
     config: SlackConfig,
 ) -> bool:
     """Send a scan summary to a Slack webhook."""
+    if not AIOHTTP_AVAILABLE:
+        logger.error("aiohttp not installed. Install with: pip install reconprobe[webhooks]")
+        return False
     blocks = [
         {
             "type": "header",
@@ -135,6 +143,9 @@ async def send_discord(
     config: DiscordConfig,
 ) -> bool:
     """Send a scan summary to a Discord webhook."""
+    if not AIOHTTP_AVAILABLE:
+        logger.error("aiohttp not installed. Install with: pip install reconprobe[webhooks]")
+        return False
     color = 0x00FF00 if summary.total_vulns == 0 else 0xFFA500 if summary.total_vulns < 5 else 0xFF0000
 
     embed = {

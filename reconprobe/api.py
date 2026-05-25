@@ -23,9 +23,18 @@ from typing import Any, Optional
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
-import uvicorn
+try:
+    from fastapi import FastAPI, HTTPException
+    from pydantic import BaseModel, Field
+    import uvicorn
+    FASTAPI_AVAILABLE = True
+except ImportError:
+    FastAPI = None  # type: ignore[assignment,misc]
+    HTTPException = None  # type: ignore[assignment,misc]
+    BaseModel = None  # type: ignore[assignment,misc]
+    Field = None  # type: ignore[assignment,misc]
+    uvicorn = None  # type: ignore[assignment]
+    FASTAPI_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -300,6 +309,11 @@ def run_server(
     version: str = "1.0.0",
 ) -> None:
     """Start the FastAPI server synchronously (blocking)."""
+    if not FASTAPI_AVAILABLE:
+        raise RuntimeError(
+            "FastAPI + uvicorn are required for server mode. "
+            "Install with: pip install reconprobe[api]"
+        )
     app = create_app(run_scan_fn, version=version)
     logger.info("Starting ReconProbe API server on %s:%s", host, port)
     uvicorn.run(app, host=host, port=port, log_level="info")

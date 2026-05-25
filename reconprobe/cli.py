@@ -195,7 +195,7 @@ Examples:
     parser.add_argument(
         "--screenshots",
         action="store_true",
-        help="Enable Playwright-based screenshot capture of web services (requires -o)",
+        help="Enable Playwright-based screenshot capture of web services (requires -o, needs playwright)",
     )
 
     # === Masscan ===
@@ -617,11 +617,16 @@ def main():
 
     # ── Phase 7: Serve mode (REST API) ──
     if args.serve:
-        from reconprobe.api import run_server
+        try:
+            from reconprobe.api import run_server as run_api_server
+        except ImportError:
+            console.print("[red]Error:[/red] FastAPI + uvicorn are required for server mode.")
+            console.print("  Install with: [bold]pip install reconprobe[api][/bold]")
+            sys.exit(1)
         console.print(f"[bold cyan]REST API server[/bold cyan] — starting on [green]{args.host}:{args.port}[/green]")
         console.print("  Endpoints: POST /scan, GET /scan/{id}, GET /health\n")
         # Signal to Pyyaml that it's used (imported via scheduler)
-        run_server(run_scan, host=args.host, port=args.port, version=__version__)
+        run_api_server(run_scan, host=args.host, port=args.port, version=__version__)
         return
 
     # ── Phase 7: Scheduled mode ──

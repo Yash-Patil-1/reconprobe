@@ -52,10 +52,37 @@ ReconProbe is a comprehensive, modular reconnaissance framework that automates t
 
 ## Installation
 
-### Via pip
+### Universal install (works on every OS)
 
 ```bash
 pip install reconprobe
+```
+
+That's it — works on **Linux, macOS, and Windows** with just **Python 3.10+**.
+
+The core install is intentionally lightweight — only pure-Python dependencies (httpx, rich, beautifulsoup4, dnspython, pyyaml). No Docker, no system packages, no browsers required.
+
+### Install with optional extras
+
+ReconProbe uses **optional dependency groups** so you only install what you need:
+
+```bash
+# Install everything
+pip install "reconprobe[full]"
+
+# Or install individual feature groups:
+pip install "reconprobe[screenshots]"   # Playwright browser screenshots
+pip install "reconprobe[reporting]"    # PDF (fpdf2) + XLSX (openpyxl) exports
+pip install "reconprobe[api]"          # FastAPI REST API server
+pip install "reconprobe[webhooks]"     # Slack/Discord/Email notifications
+```
+
+If you try a feature without the dependency installed, ReconProbe shows a clear install hint:
+
+```
+$ reconprobe example.com --serve
+Error: FastAPI + uvicorn are required for server mode.
+  Install with: pip install reconprobe[api]
 ```
 
 ### From source
@@ -63,28 +90,28 @@ pip install reconprobe
 ```bash
 git clone https://github.com/Yash-Patil-1/reconprobe.git
 cd reconprobe
-pip install -e "."
+pip install -e "."         # Core only
+# or
+pip install -e ".[full]"   # Everything
 ```
 
-### Docker
+### Docker (optional)
+
+If you prefer containerized deployment:
 
 ```bash
 docker pull ghcr.io/yash-patil-1/reconprobe:latest
-
-# Run a scan (mount a volume for reports)
 docker run --rm -v $(pwd)/reports:/reports ghcr.io/yash-patil-1/reconprobe:latest example.com -o /reports
-
-# Run the REST API server
 docker run --rm -p 8000:8000 ghcr.io/yash-patil-1/reconprobe:latest --serve
 ```
 
 ### Requirements
 
-- **Python 3.10+**
+- **Python 3.10+** (all platforms)
 - **Optional:** `playwright` for screenshots (`playwright install chromium`)
 - **Optional:** `fpdf2` for PDF reports
 - **Optional:** `openpyxl` for XLSX exports
-- **Optional:** `masscan` for high-speed port scanning
+- **Optional:** `masscan` for high-speed port scanning (Linux only)
 
 ---
 
