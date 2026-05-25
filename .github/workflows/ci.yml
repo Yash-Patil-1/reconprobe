@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        working-directory: ./reconprobe
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade setuptools wheel
+          pip install pytest pytest-asyncio flake8 mypy httpx
+          pip install -e "."
+
+      - name: Lint with flake8
+        working-directory: ./reconprobe
+        run: |
+          flake8 reconprobe/ tests/ --max-line-length=120 --extend-ignore=E203,W503
+
+      - name: Type-check with mypy
+        working-directory: ./reconprobe
+        run: |
+          mypy reconprobe/ --ignore-missing-imports --no-strict-optional || true
+
+      - name: Test with pytest
+        working-directory: ./reconprobe
+        run: |
+          python -m pytest tests/ -v --tb=short -q
+
+      - name: Verify Docker build
+        if: matrix.python-version == '3.11'
+        run: |
+          docker build -t reconprobe:ci -f reconprobe/Dockerfile ./reconprobe
+
+  docker-publish:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./reconprobe
+          file: ./reconprobe/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
