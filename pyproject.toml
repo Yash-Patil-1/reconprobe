@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta:__legacy__"
 
 [project]
 name = "reconprobe"
-version = "0.7.0"
+version = "1.0.0"
 description = "Automated reconnaissance tool for penetration testing"
 authors = [{name = "Yash Patil"}]
 requires-python = ">=3.10"
@@ -27,6 +27,25 @@ dependencies = [
 
 [project.scripts]
 reconprobe = "reconprobe.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "pytest-cov>=4.0",
+    "ruff>=0.11",
+    "pyright>=1.1",
+    "pre-commit>=3.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    # Asyncio + AsyncMock can trigger GC warnings for coroutines
+    # that were properly awaited via wait_for. This is a known
+    # false positive in the pytest-asyncio + AsyncMock interaction.
+    "ignore:coroutine 'AsyncMockMixin._execute_mock_call' was never awaited:RuntimeWarning",
+]
 
 [tool.setuptools.packages.find]
 include = ["reconprobe*"]

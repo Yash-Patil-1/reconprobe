@@ -171,7 +171,7 @@ class TestCheckProtocol:
     @pytest.mark.asyncio
     async def test_protocol_supported(self):
         mock_reader = AsyncMock()
-        mock_writer = AsyncMock()
+        mock_writer = MagicMock()
 
         with patch("asyncio.open_connection", new=AsyncMock(return_value=(mock_reader, mock_writer))):
             result = await check_protocol("test.com", 443, "TLS 1.2", ssl.PROTOCOL_TLS_CLIENT)

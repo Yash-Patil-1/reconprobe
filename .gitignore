@@ -15,12 +15,11 @@ build/
 venv/
 env/
 
-# Reports & screenshots (generated output)
-reports/
-test_output/
+# Generated screenshots
 *.png
-*.json
-*.md
+
+# Nested virtual environments (e.g., inside submodules)
+.venv/
 
 # IDE
 .vscode/

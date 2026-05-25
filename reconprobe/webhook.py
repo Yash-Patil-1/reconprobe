@@ -271,8 +271,11 @@ async def dispatch_webhooks(
         except Exception as e:
             logger.exception("Unhandled error in %s webhook", name)
             results[name] = False
-    return results    def build_summary_from_report(report: dict) -> ScanResultSummary:
-        """Build a ``ScanResultSummary`` from a full scan report dict.""" # noqa: E501
+    return results
+
+
+def build_summary_from_report(report: dict) -> ScanResultSummary:
+    """Build a ``ScanResultSummary`` from a full scan report dict."""
     import hashlib
     domain = report.get("target", {}).get("domain", report.get("domain", "unknown"))
     scan_info = report.get("scan_info", {})

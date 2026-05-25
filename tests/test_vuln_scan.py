@@ -253,9 +253,13 @@ class TestCheckDefaultCredential:
             b"331 Username ok, need password\r\n",
             b"230 Login successful\r\n",
         ]
-        mock_writer = AsyncMock()
+        mock_writer = MagicMock()
+        mock_writer.drain = AsyncMock()
 
-        with patch("asyncio.open_connection", new=AsyncMock(return_value=(mock_reader, mock_writer))):
+        async def _open_conn(*args, **kwargs):
+            return mock_reader, mock_writer
+
+        with patch("asyncio.open_connection", _open_conn):
             result = await check_default_credential("test.com", 21, "ftp", "anonymous", "anon@x.com")
             assert result is not None
             assert result.service == "ftp"
@@ -272,9 +276,13 @@ class TestCheckDefaultCredential:
             b"331 Username ok, need password\r\n",
             b"530 Login incorrect\r\n",
         ]
-        mock_writer = AsyncMock()
+        mock_writer = MagicMock()
+        mock_writer.drain = AsyncMock()
 
-        with patch("asyncio.open_connection", new=AsyncMock(return_value=(mock_reader, mock_writer))):
+        async def _open_conn(*args, **kwargs):
+            return mock_reader, mock_writer
+
+        with patch("asyncio.open_connection", _open_conn):
             result = await check_default_credential("test.com", 21, "ftp", "admin", "wrong")
             assert result is None
 
@@ -283,9 +291,13 @@ class TestCheckDefaultCredential:
         """Mock a Redis server without auth."""
         mock_reader = AsyncMock()
         mock_reader.read.return_value = b"+PONG\r\n"
-        mock_writer = AsyncMock()
+        mock_writer = MagicMock()
+        mock_writer.drain = AsyncMock()
 
-        with patch("asyncio.open_connection", new=AsyncMock(return_value=(mock_reader, mock_writer))):
+        async def _open_conn(*args, **kwargs):
+            return mock_reader, mock_writer
+
+        with patch("asyncio.open_connection", _open_conn):
             result = await check_default_credential("test.com", 6379, "redis", "", "")
             assert result is not None
             assert result.service == "redis"
@@ -296,9 +308,13 @@ class TestCheckDefaultCredential:
         """Mock a Redis server that requires auth."""
         mock_reader = AsyncMock()
         mock_reader.read.return_value = b"-NOAUTH Authentication required.\r\n"
-        mock_writer = AsyncMock()
+        mock_writer = MagicMock()
+        mock_writer.drain = AsyncMock()
 
-        with patch("asyncio.open_connection", new=AsyncMock(return_value=(mock_reader, mock_writer))):
+        async def _open_conn(*args, **kwargs):
+            return mock_reader, mock_writer
+
+        with patch("asyncio.open_connection", _open_conn):
             result = await check_default_credential("test.com", 6379, "redis", "", "")
             assert result is None
 
@@ -310,7 +326,8 @@ class TestCheckDefaultCredential:
 
     @pytest.mark.asyncio
     async def test_timeout(self):
-        with patch("asyncio.wait_for", side_effect=asyncio.TimeoutError):
+        with patch("asyncio.open_connection"), \
+             patch("asyncio.wait_for", side_effect=asyncio.TimeoutError):
             result = await check_default_credential("test.com", 21, "ftp", "a", "b")
             assert result is None
 
@@ -350,7 +367,8 @@ class TestCheckDefaultCredentials:
             b"331 Username ok, need password\r\n",
             b"230 Login successful\r\n",
         ]
-        mock_writer = AsyncMock()
+        mock_writer = MagicMock()
+        mock_writer.drain = AsyncMock()
 
         port = MagicMock()
         port.state = "open"
@@ -361,7 +379,10 @@ class TestCheckDefaultCredentials:
         report.ip_address = "1.2.3.4"
         report.ports = [port]
 
-        with patch("asyncio.open_connection", new=AsyncMock(return_value=(mock_reader, mock_writer))):
+        async def _open_conn(*args, **kwargs):
+            return mock_reader, mock_writer
+
+        with patch("asyncio.open_connection", _open_conn):
             creds = await check_default_credentials([report], max_workers=5)
             # Should get at least one credential from ftp default checks
             assert len(creds) >= 1
@@ -399,7 +420,8 @@ class TestRunVulnScan:
         """Redis has CVE entries in the DB, so expect CVEs + credentials."""
         mock_reader = AsyncMock()
         mock_reader.read.return_value = b"+PONG\r\n"
-        mock_writer = AsyncMock()
+        mock_writer = MagicMock()
+        mock_writer.drain = AsyncMock()
 
         port = MagicMock()
         port.state = "open"
@@ -411,7 +433,10 @@ class TestRunVulnScan:
         scan_report.hostname = "test.com"
         scan_report.ports = [port]
 
-        with patch("asyncio.open_connection", new=AsyncMock(return_value=(mock_reader, mock_writer))):
+        async def _open_conn(*args, **kwargs):
+            return mock_reader, mock_writer
+
+        with patch("asyncio.open_connection", _open_conn):
             report = await run_vuln_scan([scan_report], check_credentials=True)
             # Redis has CVE-2022-35977 in CVE_REFERENCE_DB under 'all' — expect at least 1 CVE
             assert report.total_cves >= 1
