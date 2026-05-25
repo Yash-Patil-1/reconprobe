@@ -28,7 +28,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install --upgrade setuptools wheel
-          pip install pytest pytest-asyncio flake8 mypy httpx
+          pip install pytest pytest-asyncio pytest-cov flake8 mypy httpx
           pip install -e "."
 
       - name: Lint with flake8
@@ -54,7 +54,7 @@ jobs:
         if: matrix.python-version == '3.11'
         uses: codecov/codecov-action@v5
         with:
-          working-directory: ./reconprobe
+          directory: ./reconprobe
           files: coverage.xml
           flags: pytest
           name: reconprobe-coverage
