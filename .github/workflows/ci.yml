@@ -41,10 +41,24 @@ jobs:
         run: |
           mypy reconprobe/ --ignore-missing-imports --no-strict-optional || true
 
-      - name: Test with pytest
+      - name: Test with pytest (coverage)
         working-directory: ./reconprobe
         run: |
-          python -m pytest tests/ -v --tb=short -q
+          python -m pytest tests/ -v --tb=short -q \
+            --cov=reconprobe \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            -m 'not docker'
+
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.11'
+        uses: codecov/codecov-action@v5
+        with:
+          working-directory: ./reconprobe
+          files: coverage.xml
+          flags: pytest
+          name: reconprobe-coverage
+          fail_ci_if_error: false
 
       - name: Verify Docker build
         if: matrix.python-version == '3.11'

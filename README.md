@@ -4,6 +4,7 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
 [![Tests](https://github.com/Yash-Patil-1/reconprobe/actions/workflows/ci.yml/badge.svg)](https://github.com/Yash-Patil-1/reconprobe/actions)
+[![Codecov](https://codecov.io/gh/Yash-Patil-1/reconprobe/branch/master/graph/badge.svg)](https://codecov.io/gh/Yash-Patil-1/reconprobe)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://pypi.org/project/reconprobe/)
 

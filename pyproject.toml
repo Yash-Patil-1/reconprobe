@@ -46,6 +46,20 @@ dev = [
     "pre-commit>=3.0",
 ]
 
+[tool.coverage.run]
+source = ["reconprobe"]
+omit = ["*/__pycache__/*", "*.venv/*", "tests/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if __name__ == .__main__.",
+    "raise NotImplementedError",
+]
+
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
 markers = [
