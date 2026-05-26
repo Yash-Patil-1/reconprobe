@@ -82,6 +82,11 @@ jobs:
             echo "VERSION_TAG=" >> $GITHUB_OUTPUT
           fi
 
+      - name: Lowercase repository name (Docker requires lowercase tags)
+        id: repo
+        run: |
+          echo "LOWER_REPO=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -104,12 +109,12 @@ jobs:
           build-args: |
             BUILD_VERSION=${{ steps.get_version.outputs.VERSION_TAG || '0.9.0' }}
           tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ steps.repo.outputs.LOWER_REPO }}:latest
+            ghcr.io/${{ steps.repo.outputs.LOWER_REPO }}:${{ github.sha }}
 
       - name: Tag and push version image (for releases)
         if: steps.get_version.outputs.VERSION_TAG != ''
         run: |
-          docker tag ghcr.io/${{ github.repository }}:${{ github.sha }} \
-            ghcr.io/${{ github.repository }}:v${{ steps.get_version.outputs.VERSION_TAG }}
-          docker push ghcr.io/${{ github.repository }}:v${{ steps.get_version.outputs.VERSION_TAG }}
+          docker tag ghcr.io/${{ steps.repo.outputs.LOWER_REPO }}:${{ github.sha }} \
+            ghcr.io/${{ steps.repo.outputs.LOWER_REPO }}:v${{ steps.get_version.outputs.VERSION_TAG }}
+          docker push ghcr.io/${{ steps.repo.outputs.LOWER_REPO }}:v${{ steps.get_version.outputs.VERSION_TAG }}
