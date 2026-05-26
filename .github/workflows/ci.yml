@@ -24,26 +24,22 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
 
-      - name: Install dependencies
-        working-directory: ./reconprobe
+      - name: Install project dependencies
         run: |
           python -m pip install --upgrade pip
           pip install --upgrade setuptools wheel
-          pip install pytest pytest-asyncio pytest-cov flake8 mypy httpx
+          pip install pytest pytest-asyncio pytest-cov ruff mypy
           pip install -e "."
 
-      - name: Lint with flake8
-        working-directory: ./reconprobe
+      - name: Lint with ruff
         run: |
-          flake8 reconprobe/ tests/ --max-line-length=120 --extend-ignore=E203,W503
+          ruff check reconprobe/ tests/
 
       - name: Type-check with mypy
-        working-directory: ./reconprobe
         run: |
           mypy reconprobe/ --ignore-missing-imports --no-strict-optional || true
 
       - name: Test with pytest (coverage)
-        working-directory: ./reconprobe
         run: |
           python -m pytest tests/ -v --tb=short -q \
             --cov=reconprobe \
@@ -55,7 +51,6 @@ jobs:
         if: matrix.python-version == '3.11'
         uses: codecov/codecov-action@v5
         with:
-          directory: ./reconprobe
           files: coverage.xml
           flags: pytest
           name: reconprobe-coverage
@@ -64,7 +59,7 @@ jobs:
       - name: Verify Docker build
         if: matrix.python-version == '3.11'
         run: |
-          docker build -t reconprobe:ci -f reconprobe/Dockerfile ./reconprobe
+          docker build -t reconprobe:ci -f Dockerfile .
 
   docker-publish:
     needs: lint-and-test
@@ -99,8 +94,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./reconprobe
-          file: ./reconprobe/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: true
           build-args: |
             BUILD_VERSION=${{ steps.get_version.outputs.VERSION_TAG || '0.9.0' }}

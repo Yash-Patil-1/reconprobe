@@ -33,24 +33,21 @@ jobs:
           cache: pip
 
       - name: Install build tools
-        working-directory: ./reconprobe
         run: |
           python -m pip install --upgrade pip
           pip install build twine
 
       - name: Build source distribution and wheel
-        working-directory: ./reconprobe
         run: python -m build
 
       - name: Check distribution with twine
-        working-directory: ./reconprobe
         run: python -m twine check dist/*
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: dist
-          path: ./reconprobe/dist/
+          path: dist/
           retention-days: 5
 
       - name: Publish to Test PyPI (manual trigger)
@@ -58,13 +55,13 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
-          packages-dir: ./reconprobe/dist/
+          packages-dir: dist/
 
       - name: Publish to PyPI (release trigger)
         if: github.event_name == 'release'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: ./reconprobe/dist/
+          packages-dir: dist/
 
   github-release:
     name: Attach distributables to GitHub Release
@@ -84,6 +81,5 @@ jobs:
       - name: Upload dist artifacts to release
         env:
           GH_TOKEN: ${{ github.token }}
-        working-directory: ./
         run: |
           gh release upload ${{ github.event.release.tag_name }} dist/* --repo ${{ github.repository }}
