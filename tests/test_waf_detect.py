@@ -212,7 +212,7 @@ class TestDetectPassive:
         mock_client.get.return_value = mock_resp
 
         with patch("httpx.AsyncClient", return_value=mock_client) as mock_cls:
-            result = await detect_passive("https://example.com", proxy_url="http://proxy:8080")
+            _result = await detect_passive("https://example.com", proxy_url="http://proxy:8080")
             # Verify proxy was passed
             call_kwargs = mock_cls.call_args
             assert call_kwargs[1]["proxies"] == "http://proxy:8080"
@@ -397,7 +397,7 @@ class TestDetectWAF:
         mock_client.get.return_value = mock_resp
 
         with patch("httpx.AsyncClient", return_value=mock_client) as mock_cls:
-            report = await detect_waf(
+            _report = await detect_waf(
                 ["https://example.com"],
                 enable_active=False,
                 proxy_url="http://proxy:8080",

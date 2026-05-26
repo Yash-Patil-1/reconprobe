@@ -11,7 +11,7 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Any, Callable, Optional
 
 from rich.console import Console
 from rich.progress import (
@@ -218,7 +218,7 @@ async def run_scan(
     advanced_report: Optional[dict] = None
 
     if checkpoint and checkpoint.is_phase_completed(1):
-        console.print(f"[dim]Phase 1/8: Subdomain Enumeration — [green]✓ already completed[/green][/dim]")
+        console.print("[dim]Phase 1/8: Subdomain Enumeration — [green]✓ already completed[/green][/dim]")
         # Restore phase data
         phase_data = checkpoint.get_phase_data(1)
         if phase_data:
@@ -270,7 +270,7 @@ async def run_scan(
                 if successful_zts:
                     console.print(f"  Zone Transfer: [green]{len(successful_zts)}[/green] nameservers allowed AXFR")
                 else:
-                    console.print(f"  Zone Transfer: [dim]no servers allowed transfer[/dim]")
+                    console.print("  Zone Transfer: [dim]no servers allowed transfer[/dim]")
 
             perms = advanced_report.get("permutations")
             if perms and perms["total_generated"] > 0:
@@ -323,7 +323,7 @@ async def run_scan(
     scan_reports = []
 
     if checkpoint and checkpoint.is_phase_completed(2):
-        console.print(f"[dim]Phase 2/8: Port Scanning — [green]✓ already completed[/green][/dim]")
+        console.print("[dim]Phase 2/8: Port Scanning — [green]✓ already completed[/green][/dim]")
         phase_data = checkpoint.get_phase_data(2)
         if phase_data:
             from reconprobe.scanner import HostScanReport, PortResult
@@ -358,7 +358,7 @@ async def run_scan(
 
         if resolved_hosts:
             if use_masscan:
-                scan_fn = scan_host_masscan
+                scan_fn: Callable[..., Any] = scan_host_masscan
                 scan_label = "masscan"
             elif enable_version_detection or enable_os_fingerprinting:
                 scan_fn = scan_host_advanced
@@ -425,7 +425,7 @@ async def run_scan(
     http_probe_reports = {}
 
     if checkpoint and checkpoint.is_phase_completed(3):
-        console.print(f"[dim]Phase 3/8: HTTP Probing — [green]✓ already completed[/green][/dim]")
+        console.print("[dim]Phase 3/8: HTTP Probing — [green]✓ already completed[/green][/dim]")
         phase_data = checkpoint.get_phase_data(3)
         if phase_data:
             http_data = phase_data.get("http_probe_reports", {})
@@ -433,7 +433,7 @@ async def run_scan(
                 from reconprobe.http_probe import HttpProbeReport, HttpProbeResult
                 hpr = HttpProbeReport(hostname=hostname)
                 for r_data in report_data.get("results", []):
-                    result = HttpProbeResult(
+                    http_result = HttpProbeResult(
                         url=r_data.get("url", ""),
                         status_code=r_data.get("status_code", 0),
                         title=r_data.get("title", ""),
@@ -442,8 +442,8 @@ async def run_scan(
                         technologies=r_data.get("technologies", []),
                         error=r_data.get("error"),
                     )
-                    hpr.results.append(result)
-                    if result.is_alive:
+                    hpr.results.append(http_result)
+                    if http_result.is_alive:
                         hpr.alive_count += 1
                 http_probe_reports[hostname] = hpr
     elif enable_http_probe and scan_reports:
@@ -508,7 +508,7 @@ async def run_scan(
     enrichment_report_data = {}
 
     if checkpoint and checkpoint.is_phase_completed(4):
-        console.print(f"[dim]Phase 4/8: Enrichment — [green]✓ already completed[/green][/dim]")
+        console.print("[dim]Phase 4/8: Enrichment — [green]✓ already completed[/green][/dim]")
         phase_data = checkpoint.get_phase_data(4)
         if phase_data:
             enrichment_report_data = phase_data.get("enrichment_report", {})
@@ -602,7 +602,7 @@ async def run_scan(
     crawl_reports = {}
 
     if checkpoint and checkpoint.is_phase_completed(5):
-        console.print(f"[dim]Phase 5/8: Crawling — [green]✓ already completed[/green][/dim]")
+        console.print("[dim]Phase 5/8: Crawling — [green]✓ already completed[/green][/dim]")
         phase_data = checkpoint.get_phase_data(5)
         if phase_data:
             crawl_data = phase_data.get("crawl_reports", {})
@@ -693,10 +693,10 @@ async def run_scan(
     # ─────────────────────────────────────────────────────────────────
     # Phase 6: Directory Brute-Force
     # ─────────────────────────────────────────────────────────────────
-    dirbuster_reports = {}
+    dirbuster_reports: dict[str, Any] = {}
 
     if checkpoint and checkpoint.is_phase_completed(6):
-        console.print(f"[dim]Phase 6/8: Directory Brute-Force — [green]✓ already completed[/green][/dim]")
+        console.print("[dim]Phase 6/8: Directory Brute-Force — [green]✓ already completed[/green][/dim]")
         phase_data = checkpoint.get_phase_data(6)
         if phase_data:
             dirb_data = phase_data.get("dirbuster_reports", {})
@@ -707,7 +707,7 @@ async def run_scan(
                     hostname=hostname,
                 )
                 for r_data in dbr_data.get("results", []):
-                    result = DirBusterResult(
+                    dirb_result = DirBusterResult(
                         url=r_data.get("url", ""),
                         status_code=r_data.get("status_code", 0),
                         content_length=r_data.get("content_length", 0),
@@ -716,10 +716,10 @@ async def run_scan(
                         title=r_data.get("title", ""),
                         error=r_data.get("error"),
                     )
-                    dbr.results.append(result)
-                    if result.is_interesting:
+                    dbr.results.append(dirb_result)
+                    if dirb_result.is_interesting:
                         dbr.total_found += 1
-                        cat = result.status_category
+                        cat = dirb_result.status_category
                         if cat in dbr.findings_by_type:
                             dbr.findings_by_type[cat] += 1
                 dbr.total_scanned = dbr_data.get("total_scanned", 0)
@@ -785,16 +785,16 @@ async def run_scan(
     # ─────────────────────────────────────────────────────────────────
     # Phase 7: Screenshots
     # ─────────────────────────────────────────────────────────────────
-    screenshot_reports = {}
+    screenshot_reports: dict[str, Any] = {}
 
     if checkpoint and checkpoint.is_phase_completed(7):
-        console.print(f"[dim]Phase 7/8: Screenshots — [green]✓ already completed[/green][/dim]")
+        console.print("[dim]Phase 7/8: Screenshots — [green]✓ already completed[/green][/dim]")
         phase_data = checkpoint.get_phase_data(7)
         if phase_data:
             ss_data = phase_data.get("screenshot_reports", {})
             for hostname, sr_data in ss_data.items():
                 from reconprobe.screenshot import ScreenshotReport, ScreenshotResult
-                sr = ScreenshotReport(hostname=hostname)
+                ss_report = ScreenshotReport(hostname=hostname)
                 for s_data in sr_data.get("screenshots", []):
                     s_result = ScreenshotResult(
                         url=s_data.get("url", ""),
@@ -802,12 +802,12 @@ async def run_scan(
                         success=s_data.get("success", False),
                         error=s_data.get("error"),
                     )
-                    sr.screenshots.append(s_result)
+                    ss_report.screenshots.append(s_result)
                     if s_result.success:
-                        sr.total_taken += 1
+                        ss_report.total_taken += 1
                     else:
-                        sr.total_failed += 1
-                screenshot_reports[hostname] = sr
+                        ss_report.total_failed += 1
+                screenshot_reports[hostname] = ss_report
     elif enable_screenshots and http_probe_reports and output_dir:
         console.print("[yellow]Phase 7/8:[/yellow] Capturing screenshots...")
 
@@ -820,16 +820,16 @@ async def run_scan(
             for hostname, probe_report in http_probe_reports.items():
                 progress.update(task, description=f"Screenshotting [cyan]{hostname}[/cyan]...")
                 try:
-                    sr = await capture_host_screenshots(
+                    ss_report = await capture_host_screenshots(
                         hostname=hostname,
                         probe_results=probe_report.results,
                         output_dir=output_dir / "screenshots",
                         timeout=30.0,
                     )
-                    screenshot_reports[hostname] = sr
+                    screenshot_reports[hostname] = ss_report
                     console.print(
-                        f"    [green]{sr.total_taken}[/green] screenshots taken "
-                        f"{'([red]' + str(sr.total_failed) + ' failed[/red])' if sr.total_failed else ''}"
+                        f"    [green]{ss_report.total_taken}[/green] screenshots taken "
+                        f"{'([red]' + str(ss_report.total_failed) + ' failed[/red])' if ss_report.total_failed else ''}"
                     )
                 except Exception as e:
                     console.print(f"  [red]Error screenshotting {hostname}: {e}[/red]")
@@ -857,7 +857,7 @@ async def run_scan(
     vuln_scan_report_data = {}
 
     if checkpoint and checkpoint.is_phase_completed(9):
-        console.print(f"[dim]Phase 9/12: Vulnerability Scan — [green]✓ already completed[/green][/dim]")
+        console.print("[dim]Phase 9/12: Vulnerability Scan — [green]✓ already completed[/green][/dim]")
         phase_data = checkpoint.get_phase_data(9)
         if phase_data:
             vuln_scan_report_data = phase_data.get("vuln_scan_report", {})
@@ -922,7 +922,7 @@ async def run_scan(
     ssl_audit_report_data = {}
 
     if checkpoint and checkpoint.is_phase_completed(10):
-        console.print(f"[dim]Phase 10/12: SSL/TLS Audit — [green]✓ already completed[/green][/dim]")
+        console.print("[dim]Phase 10/12: SSL/TLS Audit — [green]✓ already completed[/green][/dim]")
         phase_data = checkpoint.get_phase_data(10)
         if phase_data:
             ssl_audit_report_data = phase_data.get("ssl_audit_report", {})
@@ -978,9 +978,9 @@ async def run_scan(
             # Summary
             grades: dict[str, int] = {}
             total_issues = 0
-            for key, report in ssl_results.items():
-                grades[report.grade] = grades.get(report.grade, 0) + 1
-                total_issues += report.total_issues
+            for key, ssl_report in ssl_results.items():
+                grades[ssl_report.grade] = grades.get(ssl_report.grade, 0) + 1
+                total_issues += ssl_report.total_issues
 
             grade_str = ", ".join(f"{g}: {c}" for g, c in sorted(grades.items()))
             console.print(f"  Audited [green]{len(ssl_results)}[/green] TLS endpoints")
@@ -988,9 +988,9 @@ async def run_scan(
             console.print(f"  Total issues: [yellow]{total_issues}[/yellow]")
 
             # Show expired/self-signed certs
-            for key, report in ssl_results.items():
-                if report.certificate:
-                    cert = report.certificate
+            for key, ssl_report in ssl_results.items():
+                if ssl_report.certificate:
+                    cert = ssl_report.certificate
                     if cert.is_expired:
                         console.print(f"    [red]Expired certificate[/red] on {key}")
                     if cert.is_self_signed:
@@ -999,8 +999,8 @@ async def run_scan(
                         console.print(f"    [yellow]Certificate expiring soon ({cert.days_remaining}d)[/yellow] on {key}")
 
             # Show supported outdated protocols
-            for key, report in ssl_results.items():
-                for proto in report.protocols:
+            for key, ssl_report in ssl_results.items():
+                for proto in ssl_report.protocols:
                     if proto.protocol in ("TLS 1.0", "TLS 1.1") and proto.supported:
                         console.print(f"    [red]{proto.protocol} supported[/red] on {key} — should be disabled")
         else:
@@ -1021,7 +1021,7 @@ async def run_scan(
     takeover_report_data = {}
 
     if checkpoint and checkpoint.is_phase_completed(11):
-        console.print(f"[dim]Phase 11/12: Subdomain Takeover — [green]✓ already completed[/green][/dim]")
+        console.print("[dim]Phase 11/12: Subdomain Takeover — [green]✓ already completed[/green][/dim]")
         phase_data = checkpoint.get_phase_data(11)
         if phase_data:
             takeover_report_data = phase_data.get("takeover_report", {})
@@ -1055,11 +1055,11 @@ async def run_scan(
             vulnerable_count = takeover_report_data.get("total_vulnerable", 0)
             if vulnerable_count > 0:
                 console.print(f"  [red]{vulnerable_count}[/red] potential takeover(s) detected!")
-                for result in takeover_report.results:
-                    if result.is_vulnerable:
+                for takeover_res in takeover_report.results:
+                    if takeover_res.is_vulnerable:
                         console.print(
-                            f"    [bold yellow]{result.hostname}[/bold yellow] — "
-                            f"{result.service} ({result.confidence} confidence)"
+                            f"    [bold yellow]{takeover_res.hostname}[/bold yellow] — "
+                            f"{takeover_res.service} ({takeover_res.confidence} confidence)"
                         )
             else:
                 console.print(f"  [green]{len(subdomain_hostnames)}[/green] subdomains checked, "
@@ -1082,7 +1082,7 @@ async def run_scan(
     waf_report_data = {}
 
     if checkpoint and checkpoint.is_phase_completed(12):
-        console.print(f"[dim]Phase 12/12: WAF Detection — [green]✓ already completed[/green][/dim]")
+        console.print("[dim]Phase 12/12: WAF Detection — [green]✓ already completed[/green][/dim]")
         phase_data = checkpoint.get_phase_data(12)
         if phase_data:
             waf_report_data = phase_data.get("waf_report", {})
@@ -1120,9 +1120,9 @@ async def run_scan(
             protected_count = waf_report_data.get("total_protected", 0)
             if protected_count > 0:
                 console.print(f"  [yellow]{protected_count}[/yellow] URL(s) behind WAF(s)")
-                for url_str, result in waf_report.results.items():
-                    if result.is_protected:
-                        waf_names = [w["name"] for w in result.detected_wafs]
+                for url_str, waf_res in waf_report.results.items():
+                    if waf_res.is_protected:
+                        waf_names = [w["name"] for w in waf_res.detected_wafs]
                         console.print(f"    {url_str} → [cyan]{', '.join(waf_names)}[/cyan]")
             else:
                 console.print(f"  [green]{len(waf_targets)}[/green] URL(s) checked, no WAF detected")
@@ -1148,7 +1148,7 @@ async def run_scan(
     exploit_report = None
 
     if checkpoint and checkpoint.is_phase_completed(13):
-        console.print(f"[dim]Phase 13/16: Exploit Suggestion — [green]✓ already completed[/green][/dim]")
+        console.print("[dim]Phase 13/16: Exploit Suggestion — [green]✓ already completed[/green][/dim]")
         phase_data = checkpoint.get_phase_data(13)
         if phase_data:
             exploit_report = phase_data.get("exploit_report")
@@ -1228,7 +1228,7 @@ async def run_scan(
     payload_report = None
 
     if checkpoint and checkpoint.is_phase_completed(14):
-        console.print(f"[dim]Phase 14/16: Payload Generation — [green]✓ already completed[/green][/dim]")
+        console.print("[dim]Phase 14/16: Payload Generation — [green]✓ already completed[/green][/dim]")
         phase_data = checkpoint.get_phase_data(14)
         if phase_data:
             payload_report = phase_data.get("payload_report")
@@ -1289,7 +1289,7 @@ async def run_scan(
     loot_report = None
 
     if checkpoint and checkpoint.is_phase_completed(15):
-        console.print(f"[dim]Phase 15/16: Loot Collection — [green]✓ already completed[/green][/dim]")
+        console.print("[dim]Phase 15/16: Loot Collection — [green]✓ already completed[/green][/dim]")
         phase_data = checkpoint.get_phase_data(15)
         if phase_data:
             loot_report = phase_data.get("loot_report")
@@ -1349,7 +1349,7 @@ async def run_scan(
     msf_report = None
 
     if checkpoint and checkpoint.is_phase_completed(16):
-        console.print(f"[dim]Phase 16/16: MSF Script — [green]✓ already completed[/green][/dim]")
+        console.print("[dim]Phase 16/16: MSF Script — [green]✓ already completed[/green][/dim]")
         phase_data = checkpoint.get_phase_data(16)
         if phase_data:
             msf_report = phase_data.get("msf_report")
@@ -1416,7 +1416,7 @@ async def run_scan(
     osint_report_data = None
 
     if checkpoint and checkpoint.is_phase_completed(17):
-        console.print(f"[dim]Phase 17/17: Advanced OSINT — [green]✓ already completed[/green][/dim]")
+        console.print("[dim]Phase 17/17: Advanced OSINT — [green]✓ already completed[/green][/dim]")
         phase_data = checkpoint.get_phase_data(17)
         if phase_data:
             osint_report_data = phase_data.get("osint_report")
@@ -1597,7 +1597,7 @@ async def run_scan(
     # ═════════════════════════════════════════════════════════════════
 
     if webhook_config and (webhook_config.slack or webhook_config.discord or webhook_config.email):
-        console.print(f"[yellow]Phase —:[/yellow] Dispatching webhook notifications...")
+        console.print("[yellow]Phase —:[/yellow] Dispatching webhook notifications...")
         try:
             summary = build_summary_from_report(report)
             results = await dispatch_webhooks(summary, webhook_config)

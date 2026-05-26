@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main, master, develop]
+    tags: ['v*']
   pull_request:
     branches: [main, master]
 
@@ -11,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
       - name: Checkout repository
@@ -68,9 +69,20 @@ jobs:
   docker-publish:
     needs: lint-and-test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: >
+      (github.ref == 'refs/heads/main' && github.event_name == 'push')
+      || startsWith(github.ref, 'refs/tags/v')
 
     steps:
+      - name: Extract version tag
+        id: get_version
+        run: |
+          if [[ "${{ github.ref }}" =~ ^refs/tags/v ]]; then
+            echo "VERSION_TAG=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION_TAG=" >> $GITHUB_OUTPUT
+          fi
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -90,6 +102,15 @@ jobs:
           context: ./reconprobe
           file: ./reconprobe/Dockerfile
           push: true
+          build-args: |
+            BUILD_VERSION=${{ steps.get_version.outputs.VERSION_TAG || '0.9.0' }}
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ github.sha }}
+
+      - name: Tag and push version image (for releases)
+        if: steps.get_version.outputs.VERSION_TAG != ''
+        run: |
+          docker tag ghcr.io/${{ github.repository }}:${{ github.sha }} \
+            ghcr.io/${{ github.repository }}:v${{ steps.get_version.outputs.VERSION_TAG }}
+          docker push ghcr.io/${{ github.repository }}:v${{ steps.get_version.outputs.VERSION_TAG }}

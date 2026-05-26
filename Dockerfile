@@ -5,6 +5,9 @@
 # Runtime:      Lean python:3.11-slim with only what's needed
 # =============================================================================
 
+# Build-time version override (set via --build-arg BUILD_VERSION=0.9.0)
+ARG BUILD_VERSION=0.9.0
+
 # ── Stage 1: Build ──────────────────────────────────────────────────────────
 FROM python:3.11-slim AS builder
 
@@ -44,9 +47,11 @@ RUN python -c "import reconprobe; print(f'ReconProbe v{reconprobe.__version__}')
 # ── Stage 2: Runtime ────────────────────────────────────────────────────────
 FROM python:3.11-slim
 
+ARG BUILD_VERSION
+
 LABEL maintainer="Yash Patil"
 LABEL description="ReconProbe — Automated reconnaissance tool for penetration testing"
-LABEL version="1.0.0"
+LABEL version="${BUILD_VERSION}"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \

@@ -793,7 +793,7 @@ def main():
 
     # ── Single domain mode ──
     try:
-        report = asyncio.run(
+        asyncio.run(
             run_scan(
                 domain=args.domain,
                 ports=ports,

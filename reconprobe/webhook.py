@@ -11,10 +11,9 @@ All dispatchers are async and accept a standardised ``ScanResultSummary``.
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import smtplib
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from email.message import EmailMessage
 from typing import Optional
 
@@ -279,7 +278,7 @@ async def dispatch_webhooks(
     for name, task in tasks.items():
         try:
             results[name] = await task
-        except Exception as e:
+        except Exception:
             logger.exception("Unhandled error in %s webhook", name)
             results[name] = False
     return results

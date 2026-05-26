@@ -212,7 +212,7 @@ Releases are maintained by the project maintainers:
 
 1. Bump version in `reconprobe/__init__.py` and `pyproject.toml`
 2. Update `CHANGELOG.md` with the new version and changes
-3. Create a git tag: `git tag v1.0.0`
+3. Create a git tag: `git tag v0.8.0`
 4. Build distribution: `make build`
 5. Publish to PyPI: `make publish`
 

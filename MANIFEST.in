@@ -2,4 +2,8 @@ include README.md
 include LICENSE
 include CHANGELOG.md
 include pyproject.toml
+recursive-include reconprobe *.py
 recursive-include wordlists *.txt
+global-exclude __pycache__
+global-exclude *.pyc
+global-exclude .DS_Store

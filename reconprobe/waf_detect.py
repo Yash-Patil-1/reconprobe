@@ -784,7 +784,10 @@ async def detect_waf(
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     for i, url in enumerate(urls):
-        if isinstance(results[i], WafResult):
-            report.results[url] = results[i]
+        result_val = results[i]
+        if isinstance(result_val, WafResult):
+            report.results[url] = result_val
+        else:
+            report.results[url] = WafResult(url=url, error=str(result_val) if isinstance(result_val, Exception) else None)
 
     return report

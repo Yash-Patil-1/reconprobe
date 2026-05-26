@@ -8,7 +8,6 @@ WAF detection, and directory brute-forcing work correctly with real responses.
 from __future__ import annotations
 
 import socket
-from typing import Optional
 
 import pytest
 
@@ -202,9 +201,6 @@ class TestDirectoryBruteForce:
         from reconprobe.dirbuster import brute_force_paths
 
         base_url = f"http://127.0.0.1:{test_server.http_port}"
-
-        # Use a small wordlist with paths we know exist
-        wordlist_paths = ["admin", "login", "dashboard", "nonexistent"]
 
         report = brute_force_paths(
             base_url=base_url,

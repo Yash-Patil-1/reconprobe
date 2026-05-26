@@ -7,7 +7,6 @@ artifacts from scan results and organizes them by target, type, and severity.
 from __future__ import annotations
 
 import re
-import json
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Optional
@@ -183,18 +182,17 @@ def _collect_from_http_probe(http_probe_data: Any, target: str) -> list[LootItem
 
     for result in results:
         body = ""
-        headers: dict = {}
+        _headers: dict = {}
         url = ""
         port = None
 
         if isinstance(result, dict):
             body = result.get("body", "") or result.get("raw_response", "") or ""
-            headers = result.get("headers", {})
+            _headers = result.get("headers", {})
             url = result.get("url", "")
             port = result.get("port")
         elif hasattr(result, "body"):
             body = getattr(result, "body", "") or ""
-            headers = getattr(result, "headers", {}) or {}
             url = getattr(result, "url", "")
             port = getattr(result, "port", None)
 

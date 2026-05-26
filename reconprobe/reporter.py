@@ -421,7 +421,7 @@ def output_markdown(report: dict, output_path: Optional[Path] = None) -> str:
         if shodan_data.get("results"):
             lines.append("## Shodan Enrichment")
             lines.append("")
-            lines.append(f"| Metric | Value |")
+            lines.append("| Metric | Value |")
             lines.append("|--------|-------|")
             lines.append(f"| IPs Queried | {shodan_data.get('total_ips_checked', len(shodan_data.get('results', {})))} |")
             lines.append("")
@@ -463,7 +463,7 @@ def output_markdown(report: dict, output_path: Optional[Path] = None) -> str:
         if cve_data.get("results"):
             lines.append("## CVE Lookup (NVD)")
             lines.append("")
-            lines.append(f"| Metric | Value |")
+            lines.append("| Metric | Value |")
             lines.append("|--------|-------|")
             lines.append(f"| CVEs Found | {cve_data.get('total_found', 0)} |")
             lines.append("")
@@ -851,7 +851,7 @@ def output_markdown(report: dict, output_path: Optional[Path] = None) -> str:
         lines.append(f"| Exploit | {msf_info.get('exploit_count', 0)} |")
         lines.append("")
         lines.append("```bash")
-        lines.append(f"# Save and run: msfconsole -r script.rc")
+        lines.append("# Save and run: msfconsole -r script.rc")
         lines.append("")
         # Show first 30 lines of the script
         content_lines = msf_info.get("content", "").split("\n")

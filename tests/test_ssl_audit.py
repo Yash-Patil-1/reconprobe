@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import asyncio
 import ssl
 from unittest.mock import AsyncMock, MagicMock, patch
-from datetime import datetime
 
 import pytest
 
@@ -16,16 +14,13 @@ from reconprobe.ssl_audit import (
     SecurityHeaderCheck,
     SslAuditReport,
     inspect_certificate,
-    check_certificate,
     check_protocol,
     check_tls_13,
     scan_protocols,
-    check_weak_ciphers,
     check_security_headers,
     calculate_grade,
     audit_ssl,
     audit_ssl_hosts,
-    SECURITY_HEADERS,
 )
 
 

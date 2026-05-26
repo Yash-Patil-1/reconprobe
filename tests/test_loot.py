@@ -417,7 +417,6 @@ class TestCollectLoot:
             LootItem(type="takeover", source="to", target="t", data="x", severity="critical"),
             LootItem(type="internal_host", source="hp", target="t", data="10.0.0.1", severity="medium"),
         ]
-        report = LootReport(target="test.com", items=items)
         # Severity order: critical = 0, high = 1, medium = 2, low = 3, info = 4
         sev_order = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
         sorted_items = sorted(items, key=lambda i: sev_order.get(i.severity, 99))

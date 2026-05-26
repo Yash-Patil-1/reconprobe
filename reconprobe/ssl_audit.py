@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import asyncio
 import ssl
-import socket
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Optional
@@ -208,7 +207,7 @@ def inspect_certificate(cert_der: Optional[dict], hostname: str) -> Optional[Cer
         # SAN (Subject Alternative Names)
         info.san = cert_der.get("subjectAltName", [])
         # Extract just the DNS names
-        san_names = []
+        san_names: list[str] = []
         for san_entry in info.san:
             if isinstance(san_entry, tuple) and len(san_entry) >= 2:
                 san_names.append(san_entry[1])

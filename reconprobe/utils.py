@@ -25,7 +25,8 @@ def extract_domains(text: str) -> set[str]:
 def resolve_hostname(hostname: str, timeout: float = 3.0) -> Optional[str]:
     """Resolve a hostname to an IP address. Returns None on failure."""
     try:
-        return socket.getaddrinfo(hostname, 80, type=socket.SOCK_STREAM)[0][4][0]
+        addr = socket.getaddrinfo(hostname, 80, type=socket.SOCK_STREAM)[0][4][0]
+        return str(addr)
     except (socket.gaierror, OSError):
         return None
 

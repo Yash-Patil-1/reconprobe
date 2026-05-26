@@ -31,7 +31,7 @@ class TestCLIBasic:
         )
         assert result.returncode == 0
         assert "ReconProbe" in result.stdout
-        assert "1.0.0" in result.stdout
+        assert "0.9.0" in result.stdout
 
     def test_help_output(self) -> None:
         """Test that --help returns usage information."""

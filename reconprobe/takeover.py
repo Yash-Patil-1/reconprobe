@@ -14,7 +14,6 @@ import asyncio
 import warnings
 import dns.resolver
 import dns.exception
-import socket
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -376,6 +375,7 @@ async def resolve_cname(hostname: str) -> Optional[str]:
         )
         if answers:
             return str(answers[0].target).rstrip(".")
+        return None
     except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN,
             dns.resolver.NoNameservers, dns.exception.Timeout):
         return None
@@ -394,6 +394,7 @@ async def resolve_a(hostname: str) -> Optional[str]:
         )
         if answers:
             return str(answers[0])
+        return None
     except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN,
             dns.resolver.NoNameservers, dns.exception.Timeout):
         return None
@@ -521,23 +522,18 @@ async def check_takeover(
 
     # Determine vulnerability status
     if dns_status == "dangling" and sig_type == "http_body_match":
-        # Both DNS and HTTP indicate takeover
         result.is_vulnerable = True
         result.service = service_name or ""
         result.confidence = "high"
     elif dns_status == "dangling" and sig_type != "no_match":
-        # DNS is dangling, HTTP didn't match but didn't return normal content
         result.is_vulnerable = True
         result.service = service_name or "Unknown cloud service"
         result.confidence = "medium"
     elif sig_type == "http_body_match":
-        # HTTP matched a fingerprint even though DNS seemed normal
-        # Could be a different type of takeover
         result.is_vulnerable = True
         result.service = service_name or ""
         result.confidence = "medium"
     elif dns_status == "nxdomain":
-        # Hostname doesn't resolve at all — potential takeover
         result.is_vulnerable = True
         result.service = "Unknown (NXDOMAIN)"
         result.confidence = "low"

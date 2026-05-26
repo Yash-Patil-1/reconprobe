@@ -33,7 +33,7 @@ class DirBusterResult:
     def is_interesting(self) -> bool:
         """Determine if the result is interesting (not a true 404/error)."""
         return (200 <= self.status_code < 400 and self.status_code not in (304,))
-    
+
     @property
     def status_category(self) -> str:
         if 200 <= self.status_code < 300:
@@ -164,18 +164,18 @@ def is_probably_404(
     # Explicit 404 status
     if resp.status_code == 404:
         return True
-    
+
     # Content length matches 404 baseline (within tolerance)
     content_length = len(resp.text)
     if baseline_length > 0:
         ratio = abs(content_length - baseline_length) / max(baseline_length, 1)
         if ratio < tolerance:
             return True
-    
+
     # Page title indicates not found
     if "<title>404" in resp.text or "<title>Not Found" in resp.text:
         return True
-    
+
     # Body content indicates not found
     body_lower = resp.text.lower()
     not_found_indicators = [
@@ -188,7 +188,7 @@ def is_probably_404(
             # But only if the content is short (custom 404 pages can be verbose)
             if content_length < 2000:
                 return True
-    
+
     return False
 
 
@@ -279,10 +279,10 @@ def brute_force_paths(
     Uses smart 404 detection to filter false positives from custom error pages.
     """
     report = DirBusterReport(base_url=base_url, hostname=hostname)
-    
+
     # Load wordlist
     paths = load_paths_wordlist(wordlist_path)
-    
+
     # Add extension variants if specified
     if extensions:
         extended_paths = list(paths)
@@ -291,10 +291,10 @@ def brute_force_paths(
                 if not path.endswith(ext):
                     extended_paths.append(path + ext)
         paths = extended_paths
-    
+
     # Deduplicate
     paths = list(dict.fromkeys(paths))
-    
+
     # Get baseline 404 for smart detection
     baseline_length = 0
     baseline_snippet: Optional[str] = None
@@ -306,7 +306,7 @@ def brute_force_paths(
         client_kwargs["proxies"] = proxy_url
     with httpx.Client(**client_kwargs) as baseliner:
         baseline_length, baseline_snippet = get_baseline_404(base_url, baseliner, timeout)
-    
+
     # Multi-threaded scanning
     # Each thread handles its own httpx.Client for thread safety
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -330,12 +330,12 @@ def brute_force_paths(
             if delay > 0 and i > 0 and i % 10 == 0:
                 import time
                 time.sleep(delay)
-    
+
     report.total_scanned = len(paths)
-    
+
     # Sort results by status code then URL
     report.results.sort(key=lambda r: (r.status_code, r.url))
-    
+
     return report
 
 

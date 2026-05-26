@@ -8,8 +8,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
-from pathlib import Path, PurePosixPath
-from typing import Optional
+from pathlib import PurePosixPath
 
 CHARTJS_CDN = "https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"
 
@@ -95,7 +94,6 @@ def generate_html_report(report: dict) -> str:
     total_open_ports = sum(h.get("open_ports", 0) for h in port_info.get("hosts", []))
     total_alive = http_info.get("total_alive_services", 0)
 
-    shodan_results = enrichment_info.get("shodan", {}).get("results", {})
     cve_results_list = enrichment_info.get("cve_lookup", {}).get("results", [])
     total_cves = len(cve_results_list)
     high_critical_cves = sum(
@@ -1181,7 +1179,6 @@ def _build_vuln_section(vuln_info: dict) -> str:
   </table>
 </div>"""
 
-    total = len(cves) + len(creds)
     return f"""
 <div class="section">
   <div class="section-toggle">
@@ -1228,8 +1225,8 @@ def _build_ssl_section(ssl_info: dict) -> str:
     <div>Issuer: {_escape_html(cert.get('issuer', ''))}</div>
     <div>Valid To: {_escape_html(cert.get('valid_to', ''))}</div>
     <div>Status: {status_icon} {is_expired and 'EXPIRED' or (will_expire and f'Expiring soon ({days_rem}d)' or f'Valid ({days_rem}d left)')}</div>
-    {f'<div style="color:#ef4444;">Self-Signed: Yes</div>' if is_self else ''}
-    {f'<div style="color:#f59e0b;">Wildcard: Yes</div>' if cert.get("is_wildcard", False) else ''}
+    {'<div style="color:#ef4444;">Self-Signed: Yes</div>' if is_self else ''}
+    {'<div style="color:#f59e0b;">Wildcard: Yes</div>' if cert.get("is_wildcard", False) else ''}
   </div>
 </div>"""
 

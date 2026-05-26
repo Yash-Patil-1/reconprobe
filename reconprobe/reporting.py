@@ -12,8 +12,6 @@ from __future__ import annotations
 
 import csv
 import io
-import math
-import textwrap
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
@@ -109,7 +107,6 @@ def calculate_cvss_score(
     ac_score = _CVSS_METRICS["attack_complexity"][ac]
     pr_score = _CVSS_METRICS["privileges_required"][pr]
     ui_score = _CVSS_METRICS["user_interaction"][ui]
-    s_score = _CVSS_METRICS["scope"][s]
     c_score = _CVSS_METRICS["confidentiality"][c]
     i_score = _CVSS_METRICS["integrity"][i]
     a_score = _CVSS_METRICS["availability"][a]
@@ -373,7 +370,6 @@ def generate_timeline_entries(report: dict) -> list[dict[str, Any]]:
     scan_info = report.get("scan_info", {})
 
     start = scan_info.get("start_time", "")
-    end = scan_info.get("end_time", "")
 
     # Determine which phases had data
     phase_markers: list[tuple[str, str, str]] = [
@@ -1073,7 +1069,7 @@ def run_reporting_enhancements(
         try:
             generate_pdf_report(report, pdf_path)
             generated["pdf"] = pdf_path
-        except RuntimeError as e:
+        except RuntimeError:
             # fpdf2 not available
             pass
 

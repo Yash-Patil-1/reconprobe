@@ -15,7 +15,6 @@ from urllib.parse import urljoin, urlparse, urlunparse
 import httpx
 from bs4 import BeautifulSoup
 
-from reconprobe.http_probe import HttpProbeResult
 
 
 @dataclass
@@ -32,6 +31,7 @@ class CrawledPage:
     forms: list[dict] = field(default_factory=list)
     api_endpoints: list[str] = field(default_factory=list)
     hidden_endpoints: list[str] = field(default_factory=list)
+    interesting_findings: list[dict] = field(default_factory=list)
     error: Optional[str] = None
 
     @property
@@ -153,7 +153,7 @@ def is_same_domain(url: str, domain: str) -> bool:
 def extract_interesting_findings(url: str, body: str, depth: int) -> list[dict]:
     """Extract interesting findings from a page (API endpoints, admin panels, etc.)."""
     findings: list[dict] = []
-    
+
     # Check URL against sensitive patterns
     for pattern in SENSITIVE_PATTERNS:
         if pattern.search(url):
@@ -164,7 +164,7 @@ def extract_interesting_findings(url: str, body: str, depth: int) -> list[dict]:
                 "depth": depth,
             })
             break
-    
+
     # Check URL against API patterns
     for pattern in API_PATTERNS:
         if pattern.search(url):
@@ -175,7 +175,7 @@ def extract_interesting_findings(url: str, body: str, depth: int) -> list[dict]:
                 "depth": depth,
             })
             break
-    
+
     # Look for email addresses in the page
     emails = re.findall(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", body)
     for email in set(emails):
@@ -186,7 +186,7 @@ def extract_interesting_findings(url: str, body: str, depth: int) -> list[dict]:
                 "detail": email,
                 "depth": depth,
             })
-    
+
     # Look for comments with TODO/FIXME/HACK
     comments = re.findall(r"<!--(.*?)-->", body, re.DOTALL)
     for comment in comments:
@@ -199,7 +199,7 @@ def extract_interesting_findings(url: str, body: str, depth: int) -> list[dict]:
                     "depth": depth,
                 })
                 break
-    
+
     # Limit findings per page
     return findings[:20]
 
@@ -262,7 +262,8 @@ async def crawl_page(
         # Extract all links
         for a_tag in soup.find_all("a", href=True):
             href = a_tag["href"]
-            normalized = normalize_url(url, href)
+            href_str = str(href)
+            normalized = normalize_url(url, href_str)
             if normalized:
                 if is_same_domain(normalized, target_domain):
                     if normalized not in seen_urls:
@@ -278,16 +279,16 @@ async def crawl_page(
 
         # Extract scripts
         for script_tag in soup.find_all("script", src=True):
-            src = script_tag["src"]
-            normalized = normalize_url(url, src)
+            src_str = str(script_tag["src"])
+            normalized = normalize_url(url, src_str)
             if normalized:
                 page.scripts.append(normalized)
 
         # Extract forms
         for form_tag in soup.find_all("form"):
             action = form_tag.get("action", "")
-            method = form_tag.get("method", "GET").upper()
-            form_url = normalize_url(url, action) or url
+            method = str(form_tag.get("method", "GET")).upper()
+            form_url = normalize_url(url, str(action)) or url
             inputs = []
             for input_tag in form_tag.find_all("input"):
                 input_name = input_tag.get("name", "")
@@ -450,6 +451,6 @@ async def crawl_hosts(
             )
             if report.total_pages > 0:
                 reports[hostname] = report
-        except Exception as e:
+        except Exception:
             pass  # Skip hosts that fail to crawl
     return reports

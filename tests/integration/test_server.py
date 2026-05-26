@@ -7,14 +7,12 @@ running services rather than mocked connections.
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import os
 import socket
 import ssl
 import threading
-from datetime import datetime, timedelta
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from typing import Optional
 
@@ -24,12 +22,11 @@ logger = logging.getLogger(__name__)
 
 def _generate_self_signed_cert(cert_path: str, key_path: str) -> None:
     """Generate a self-signed certificate for testing TLS.
-    
+
     Uses cryptography if available, otherwise falls back to openssl subprocess.
     """
     import subprocess
-    import tempfile
-    
+
     # Generate using openssl
     cmd = [
         "openssl", "req", "-x509", "-newkey", "rsa:2048",
@@ -50,43 +47,43 @@ def _generate_self_signed_cert(cert_path: str, key_path: str) -> None:
 
 class IntegrationHTTPHandler(BaseHTTPRequestHandler):
     """Configurable HTTP request handler for integration tests.
-    
+
     Responds with predefined content mimicking real web services.
     Supports configurable headers, status codes, and response bodies
     via a shared config dict.
     """
-    
+
     # Shared configuration set by the test server
     config: dict = {}
-    
+
     def log_message(self, format: str, *args) -> None:
         """Suppress default HTTP server logging in tests."""
         pass
-    
+
     def _get_server_headers(self) -> dict:
         """Return server-specific headers based on test configuration."""
         return self.config.get("server_headers", {})
-    
+
     def _get_tech_headers(self) -> dict:
         """Return technology fingerprinting headers."""
         return self.config.get("tech_headers", {})
-    
+
     def _get_waf_headers(self) -> dict:
         """Return WAF-related headers for testing WAF detection."""
         return self.config.get("waf_headers", {})
-    
+
     def _get_security_headers(self) -> dict:
         """Return security-related headers for SSL audit testing."""
         return self.config.get("security_headers", {})
-    
+
     def _get_waf_trigger_paths(self) -> list[str]:
         """Return paths that should trigger WAF-like responses."""
         return self.config.get("waf_trigger_paths", [])
-    
+
     def _get_custom_endpoints(self) -> dict:
         """Return custom endpoint configurations."""
         return self.config.get("custom_endpoints", {})
-    
+
     def _check_waf_trigger(self) -> Optional[dict]:
         """Check if the request path should trigger a WAF-like response."""
         path = self.path.split("?")[0].lower()
@@ -98,41 +95,41 @@ class IntegrationHTTPHandler(BaseHTTPRequestHandler):
                 "body": "<html><body><h1>403 Forbidden</h1><p>Request blocked by WAF</p></body></html>",
             }
         return None
-    
+
     def _respond(self, status: int, body: str, content_type: str = "text/html",
                  extra_headers: Optional[dict] = None) -> None:
         """Send a response with the given status, body, and headers."""
         self.send_response(status)
         self.send_header("Content-Type", content_type)
-        
+
         # Add server headers
         for key, value in self._get_server_headers().items():
             self.send_header(key, value)
-        
+
         # Add tech headers
         for key, value in self._get_tech_headers().items():
             self.send_header(key, value)
-        
+
         # Add security headers
         for key, value in self._get_security_headers().items():
             self.send_header(key, value)
-        
+
         # Add WAF headers (so WAF detection tests work on normal requests)
         for key, value in self._get_waf_headers().items():
             self.send_header(key, value)
-        
+
         if extra_headers:
             for key, value in extra_headers.items():
                 self.send_header(key, value)
-        
+
         self.send_header("Content-Length", str(len(body.encode())))
         self.end_headers()
         self.wfile.write(body.encode())
-    
+
     def _respond_json(self, status: int, data: dict) -> None:
         """Send a JSON response."""
         self._respond(status, json.dumps(data), "application/json")
-    
+
     def _handle_api(self, path: str) -> None:
         """Handle API-like endpoints."""
         if path == "/api/health":
@@ -152,7 +149,7 @@ class IntegrationHTTPHandler(BaseHTTPRequestHandler):
             })
         elif path.startswith("/api/"):
             self._respond_json(404, {"error": "not_found"})
-    
+
     def _handle_admin(self, path: str) -> None:
         """Handle admin-like endpoints."""
         if path == "/admin":
@@ -167,7 +164,7 @@ class IntegrationHTTPHandler(BaseHTTPRequestHandler):
         elif path == "/admin/backup.sql":
             self._respond(200, "INSERT INTO users VALUES (1, 'admin', 'password123');\n",
                          content_type="text/plain")
-    
+
     def _handle_assets(self, path: str) -> None:
         """Handle static asset endpoints."""
         if path.endswith(".js"):
@@ -181,7 +178,7 @@ class IntegrationHTTPHandler(BaseHTTPRequestHandler):
                 self.send_header(key, value)
             self.end_headers()
             self.wfile.write(b"\x89PNG\r\n\x1a\n" + b"\x00" * 100)  # Minimal PNG
-    
+
     def _handle_crawl_paths(self, path: str) -> None:
         """Handle paths used for crawling tests."""
         if path == "/":
@@ -248,14 +245,14 @@ class IntegrationHTTPHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         """Handle GET requests."""
         path = self.path.split("?")[0]
-        
+
         # Check WAF triggers
         waf_response = self._check_waf_trigger()
         if waf_response:
             self._respond(waf_response["status"], waf_response["body"],
                          extra_headers=waf_response.get("headers"))
             return
-        
+
         # Check custom endpoints
         custom = self._get_custom_endpoints()
         if path in custom:
@@ -264,7 +261,7 @@ class IntegrationHTTPHandler(BaseHTTPRequestHandler):
                          ep.get("content_type", "text/html"),
                          ep.get("headers", {}))
             return
-        
+
         # Route to handlers
         if path.startswith("/api/"):
             self._handle_api(path)
@@ -278,11 +275,11 @@ class IntegrationHTTPHandler(BaseHTTPRequestHandler):
             self._handle_dirs(path)
         else:
             self._respond(404, "<html><body><h1>404 Not Found</h1></body></html>")
-    
+
     def do_POST(self):
         """Handle POST requests."""
         path = self.path.split("?")[0]
-        
+
         if path == "/login":
             content_length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(content_length).decode() if content_length > 0 else ""
@@ -353,14 +350,14 @@ def get_default_config() -> dict:
 
 class IntegrationTestServer:
     """Manages a local HTTP/HTTPS test server for integration tests.
-    
+
     Usage:
         server = IntegrationTestServer(port=8080)
         server.start()
         # Run tests against localhost:8080
         server.stop()
     """
-    
+
     def __init__(
         self,
         http_port: int = 0,
@@ -377,22 +374,22 @@ class IntegrationTestServer:
         self._http_thread: Optional[threading.Thread] = None
         self._https_thread: Optional[threading.Thread] = None
         self._running = False
-    
+
     @staticmethod
     def _find_free_port() -> int:
         """Find a free TCP port."""
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind(("127.0.0.1", 0))
             return s.getsockname()[1]
-    
+
     def start(self) -> None:
         """Start the HTTP and HTTPS servers."""
         if self._running:
             return
-        
+
         # Set up handler config
         IntegrationHTTPHandler.config = self.config
-        
+
         # Start HTTP server
         self._http_server = HTTPServer(("127.0.0.1", self.http_port), IntegrationHTTPHandler)
         self._http_thread = threading.Thread(
@@ -402,16 +399,16 @@ class IntegrationTestServer:
         )
         self._http_thread.start()
         logger.info("Test HTTP server started on 127.0.0.1:%d", self.http_port)
-        
+
         # Start HTTPS server if cert generation succeeds
         try:
             os.makedirs(self.cert_dir, exist_ok=True)
             cert_path = os.path.join(self.cert_dir, "server.crt")
             key_path = os.path.join(self.cert_dir, "server.key")
-            
+
             if not (os.path.exists(cert_path) and os.path.exists(key_path)):
                 _generate_self_signed_cert(cert_path, key_path)
-            
+
             self._https_server = HTTPServer(("127.0.0.1", self.https_port), IntegrationHTTPHandler)
             ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
             ctx.load_cert_chain(cert_path, key_path)
@@ -429,9 +426,9 @@ class IntegrationTestServer:
             logger.info("Test HTTPS server started on 127.0.0.1:%d", self.https_port)
         except (RuntimeError, FileNotFoundError, ImportError) as e:
             logger.warning("HTTPS server not started: %s", e)
-        
+
         self._running = True
-    
+
     def stop(self) -> None:
         """Stop the servers."""
         self._running = False
@@ -440,23 +437,23 @@ class IntegrationTestServer:
         if self._https_server:
             self._https_server.shutdown()
         logger.info("Test servers stopped")
-    
+
     def get_http_url(self, path: str = "/") -> str:
         """Get the full HTTP URL for a path on the test server."""
         return f"http://127.0.0.1:{self.http_port}{path}"
-    
+
     def get_https_url(self, path: str = "/") -> str:
         """Get the full HTTPS URL for a path on the test server."""
         return f"https://127.0.0.1:{self.https_port}{path}"
-    
+
     def update_config(self, config_updates: dict) -> None:
         """Update the server configuration."""
         self.config.update(config_updates)
         IntegrationHTTPHandler.config = self.config
-    
+
     def __enter__(self) -> "IntegrationTestServer":
         self.start()
         return self
-    
+
     def __exit__(self, *args) -> None:
         self.stop()

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -748,7 +748,7 @@ class TestRunOSINT:
                         with patch("reconprobe.osint.social_footprint", new_callable=AsyncMock, return_value=[]):
                             with patch("reconprobe.osint.breach_check", new_callable=AsyncMock, return_value=[]):
                                 with patch("reconprobe.osint.tech_stack_osint", new_callable=AsyncMock, return_value=[]):
-                                    report = await run_osint("")
+                                    _report = await run_osint("")
 
         # Should run all modules (github uses empty string as domain)
         pass

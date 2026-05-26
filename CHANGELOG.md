@@ -7,11 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.0.0] — 2026-05-25
+## [0.9.0] — 2026-05-26
 
 ### Added
 
-- **Phase 8: Polish & Distribution**
+- **Phase 8: Polish & Distribution (Complete)**
+  - PyPI publishing workflow: `.github/workflows/pypi-publish.yml` with OIDC trusted publishing
+  - GitHub Actions: Python 3.13 added to CI test matrix
+  - GitHub Actions: Docker publish now triggers on version tags (`v*`) with version-tagged images
+  - Dockerfile: `BUILD_VERSION` build arg replaces hardcoded version in image labels
+  - pyproject.toml: classifiers for Python 3.13, `Typing :: Typed`, `Python :: 3 :: Only`
+  - pyproject.toml: Changelog and Release Notes URLs
+  - MANIFEST.in: explicit source includes and global-excludes
+  - Updated `pyproject.toml`, `__init__.py`, `README.md`, and test assertions — all version references 0.8.0 → 0.9.0
+
+### Fixed
+
+- **Ruff lint**: fixed all 65 issues across source and test files (51 auto-fixed + 14 manual)
+- **Mypy type errors**: fixed all 65 errors across 11 files (`runner.py`, `exploit_suggest.py`, `waf_detect.py`, `enrichment.py`, `crawler.py`, `takeover.py`, `api.py`, `utils.py`, `osint.py`, `ssl_audit.py`, `subdomain_advanced.py`)
+- **Dockerfile**: removed hardcoded `version="0.8.0"` label, now uses dynamic `BUILD_VERSION` arg
+- **ci.yml**: removed empty Docker tag from inline expression (split into conditional step)
+- **pyproject.toml**: removed redundant `License :: OSI Approved :: MIT License` classifier (conflicts with `license = "MIT"` per PEP 639)
+
+## [0.8.0] — 2026-05-25
+
+### Added
+
+- **Phase 8: Polish & Distribution (WIP)**
   - Comprehensive README with full CLI reference, API docs, and examples
   - PyPI packaging (setup.py + MANIFEST.in for backward compatibility)
   - Makefile with build/test/clean/publish targets
@@ -21,7 +43,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - SSL/TLS audit: suppressed Python 3.13 deprecation warnings for TLS 1.0/1.1 version constants
-- Version bumped to 1.0.0 for first stable release
+- Build backend corrected from `__legacy__` to standard `setuptools.build_meta`
+- Added missing pyproject.toml metadata (readme, license, classifiers, keywords, URLs)
+- Version corrected to 0.8.0 (pre-release; Phase 8 PyPI publishing still pending)
 
 ---
 
@@ -128,7 +152,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[1.0.0]: https://github.com/Yash-Patil-1/reconprobe/releases/tag/v1.0.0
+[0.9.0]: https://github.com/Yash-Patil-1/reconprobe/releases/tag/v0.9.0
+[0.8.0]: https://github.com/Yash-Patil-1/reconprobe/releases/tag/v0.8.0
 [0.7.0]: https://github.com/Yash-Patil-1/reconprobe/releases/tag/v0.7.0
 [0.6.0]: https://github.com/Yash-Patil-1/reconprobe/releases/tag/v0.6.0
 [0.5.0]: https://github.com/Yash-Patil-1/reconprobe/releases/tag/v0.5.0

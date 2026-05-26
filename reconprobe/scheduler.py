@@ -36,8 +36,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
-import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -226,8 +224,8 @@ async def run_scheduled_scans(
         entry.last_run = now.isoformat()
         try:
             save_schedule(config, schedule_path)
-        except OSError as e:
-            logger.warning("Could not save schedule after '%s': %s", entry.name, e)
+        except OSError:
+            logger.warning("Could not save schedule after '%s'", entry.name)
 
     return results
 

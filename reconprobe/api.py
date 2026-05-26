@@ -61,6 +61,7 @@ class ScanJob(BaseModel):
     """Represents a scan job in the system."""
     job_id: str
     domain: str
+    flags: dict[str, Any] = Field(default_factory=dict)
     status: ScanStatus = ScanStatus.PENDING
     created_at: str = ""
     completed_at: Optional[str] = None
@@ -170,8 +171,8 @@ class ScanWorker:
             try:
                 report = await self._run_scan(
                     domain=job.domain,
-                    ports=job.flags.get("ports"),
-                    **{k: v for k, v in job.flags.items() if k != "ports"},
+                    ports=(job.flags or {}).get("ports"),
+                    **{k: v for k, v in (job.flags or {}).items() if k != "ports"},
                 )
                 await self._store.update(
                     job_id,
@@ -202,7 +203,7 @@ _start_time = datetime.now(timezone.utc)
 
 def create_app(
     run_scan_fn: Any,
-    version: str = "1.0.0",
+    version: str = "0.8.0",
 ) -> FastAPI:
     """Create and configure the FastAPI application."""
     store = JobStore()
@@ -306,7 +307,7 @@ def run_server(
     run_scan_fn: Any,
     host: str = "0.0.0.0",
     port: int = 8000,
-    version: str = "1.0.0",
+    version: str = "0.8.0",
 ) -> None:
     """Start the FastAPI server synchronously (blocking)."""
     if not FASTAPI_AVAILABLE:

@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass, field
 from unittest.mock import AsyncMock, MagicMock, patch
-from typing import Optional
 
 import pytest
 

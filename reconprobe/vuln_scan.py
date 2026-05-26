@@ -8,11 +8,8 @@ Designed to work with port scan results and HTTP probe data.
 from __future__ import annotations
 
 import asyncio
-import socket
 from dataclasses import dataclass, field
 from typing import Optional
-
-import httpx
 
 
 # ── Data structures ──────────────────────────────────────────────────────────
@@ -396,11 +393,11 @@ async def check_default_credential(
                 asyncio.open_connection(hostname, port), timeout=timeout
             )
             # Read banner
-            banner_data = await asyncio.wait_for(reader.read(1024), timeout=timeout)
+            await asyncio.wait_for(reader.read(1024), timeout=timeout)
             # Send USER
             writer.write(f"USER {username}\r\n".encode())
             await asyncio.wait_for(writer.drain(), timeout=timeout)
-            resp1 = await asyncio.wait_for(reader.read(1024), timeout=timeout)
+            await asyncio.wait_for(reader.read(1024), timeout=timeout)
             # Send PASS
             writer.write(f"PASS {password}\r\n".encode())
             await asyncio.wait_for(writer.drain(), timeout=timeout)

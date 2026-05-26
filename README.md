@@ -6,7 +6,7 @@
 [![Tests](https://github.com/Yash-Patil-1/reconprobe/actions/workflows/ci.yml/badge.svg)](https://github.com/Yash-Patil-1/reconprobe/actions)
 [![Codecov](https://codecov.io/gh/Yash-Patil-1/reconprobe/branch/master/graph/badge.svg)](https://codecov.io/gh/Yash-Patil-1/reconprobe)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://pypi.org/project/reconprobe/)
+[![Version](https://img.shields.io/badge/version-0.9.0-blue)](https://github.com/Yash-Patil-1/reconprobe)
 
 ReconProbe is a comprehensive, modular reconnaissance framework that automates the full penetration testing recon workflow — from subdomain enumeration and port scanning to vulnerability assessment, OSINT gathering, and professional reporting.
 

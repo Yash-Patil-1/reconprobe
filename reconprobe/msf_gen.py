@@ -6,7 +6,6 @@ exploit and auxiliary modules with target details for use with msfconsole -r.
 
 from __future__ import annotations
 
-import textwrap
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -419,7 +418,7 @@ def generate_msf_script(
     if exploit_suggestions:
         content_lines.append("# Start a generic handler for incoming shells")
         content_lines.append("use exploit/multi/handler")
-        content_lines.append(f"set PAYLOAD generic/shell_reverse_tcp")
+        content_lines.append("set PAYLOAD generic/shell_reverse_tcp")
         content_lines.append(f"set LHOST {lhost}")
         content_lines.append(f"set LPORT {lport}")
         content_lines.append("set ExitOnSession false")

@@ -1,12 +1,32 @@
 [build-system]
 requires = ["setuptools>=64", "wheel"]
-build-backend = "setuptools.build_meta:__legacy__"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "reconprobe"
-version = "1.0.0"
+version = "0.9.0"
 description = "Automated reconnaissance tool for penetration testing"
+readme = "README.md"
+license = "MIT"
 authors = [{name = "Yash Patil"}]
+keywords = ["security", "pentesting", "reconnaissance", "osint", "vulnerability-scanning", "penetration-testing"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+    "Topic :: System :: Networking",
+    "Typing :: Typed",
+]
 requires-python = ">=3.10"
 dependencies = [
     "httpx>=0.27",
@@ -15,6 +35,14 @@ dependencies = [
     "dnspython>=2.6",
     "pyyaml>=6.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/Yash-Patil-1/reconprobe"
+Repository = "https://github.com/Yash-Patil-1/reconprobe"
+Documentation = "https://github.com/Yash-Patil-1/reconprobe#readme"
+"Issues" = "https://github.com/Yash-Patil-1/reconprobe/issues"
+"Changelog" = "https://github.com/Yash-Patil-1/reconprobe/blob/main/CHANGELOG.md"
+"Release Notes" = "https://github.com/Yash-Patil-1/reconprobe/releases"
 
 [project.scripts]
 reconprobe = "reconprobe.cli:main"

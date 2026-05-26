@@ -14,12 +14,10 @@ from __future__ import annotations
 
 import asyncio
 import re
-import json
 import subprocess
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Optional
-from urllib.parse import urlparse
 
 
 # ── Data classes ─────────────────────────────────────────────────────────────
@@ -201,9 +199,9 @@ async def _github_api_search(query: str, token: str) -> Optional[dict]:
             "Authorization": f"token {token}",
             "Accept": "application/vnd.github.v3+json",
         }
-        params = {"q": query, "per_page": 5}
+        params: dict[str, str | int] = {"q": query, "per_page": 5}
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers, params=params, timeout=15) as resp:
+            async with session.get(url, headers=headers, params=params, timeout=aiohttp.ClientTimeout(15)) as resp:
                 if resp.status == 200:
                     return await resp.json()
     except ImportError:

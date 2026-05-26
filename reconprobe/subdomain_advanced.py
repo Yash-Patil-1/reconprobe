@@ -102,14 +102,14 @@ def resolve_nameservers(domain: str) -> list[str]:
         for rdata in answers:
             ns_hostname = str(rdata.target).rstrip(".")
             try:
-                ns_ip = socket.getaddrinfo(ns_hostname, 53)[0][4][0]
+                ns_ip = str(socket.getaddrinfo(ns_hostname, 53)[0][4][0])
                 ns_ips.append(ns_ip)
             except (socket.gaierror, OSError, IndexError):
                 pass
     except ImportError:
         # dnspython not installed
         pass
-    except Exception as e:
+    except Exception:
         # DNS resolution failed
         pass
     return ns_ips
@@ -326,8 +326,6 @@ async def run_permutation_engine(
         return report
 
     # Resolve candidates using thread pool
-    loop = asyncio.get_running_loop()
-
     def try_resolve(hostname: str) -> Optional[str]:
         ip = resolve_hostname(hostname, timeout=3.0)
         return hostname if ip else None
