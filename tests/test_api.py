@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 import pytest
+
+pytest.importorskip("pydantic", reason="Requires pydantic (install with: pip install reconprobe[api])")
+pytest.importorskip("fastapi", reason="Requires fastapi (install with: pip install reconprobe[api])")
+
 from httpx import AsyncClient, ASGITransport
 
 from reconprobe.api import create_app

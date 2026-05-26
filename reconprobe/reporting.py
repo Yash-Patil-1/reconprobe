@@ -760,79 +760,81 @@ def export_findings_xlsx(report: dict, output_path: Path) -> None:
 # ────────────────────────────────────────────────────────────────────────────
 
 
-class _ReconPDF(FPDF):
-    """Custom FPDF subclass with headers/footers for ReconProbe reports."""
+if FPDF_AVAILABLE:
 
-    def header(self) -> None:
-        self.set_font("Helvetica", "B", 10)
-        self.set_text_color(6, 182, 212)
-        self.cell(0, 8, "ReconProbe — Security Assessment Report", new_x="LMARGIN", new_y="NEXT", align="C")
-        self.line(10, self.get_y(), 200, self.get_y())
-        self.ln(4)
+    class _ReconPDF(FPDF):
+        """Custom FPDF subclass with headers/footers for ReconProbe reports."""
 
-    def footer(self) -> None:
-        self.set_y(-15)
-        self.set_font("Helvetica", "I", 8)
-        self.set_text_color(100, 116, 139)
-        self.cell(0, 10, f"Page {self.page_no()}/{{nb}}", align="C")
+        def header(self) -> None:
+            self.set_font("Helvetica", "B", 10)
+            self.set_text_color(6, 182, 212)
+            self.cell(0, 8, "ReconProbe — Security Assessment Report", new_x="LMARGIN", new_y="NEXT", align="C")
+            self.line(10, self.get_y(), 200, self.get_y())
+            self.ln(4)
 
-    def section_title(self, title: str) -> None:
-        self.set_font("Helvetica", "B", 14)
-        self.set_text_color(15, 23, 42)
-        self.set_fill_color(226, 232, 240)
-        self.cell(0, 10, f"  {title}", new_x="LMARGIN", new_y="NEXT", fill=True)
-        self.ln(4)
+        def footer(self) -> None:
+            self.set_y(-15)
+            self.set_font("Helvetica", "I", 8)
+            self.set_text_color(100, 116, 139)
+            self.cell(0, 10, f"Page {self.page_no()}/{{nb}}", align="C")
 
-    def severity_badge(self, severity: str) -> str:
-        sev = severity.upper()
-        if sev == "CRITICAL":
-            return "[ CRITICAL ]"
-        elif sev == "HIGH":
-            return "[ HIGH ]"
-        elif sev == "MEDIUM":
-            return "[ MEDIUM ]"
-        elif sev == "LOW":
-            return "[ LOW ]"
-        return "[ INFO ]"
+        def section_title(self, title: str) -> None:
+            self.set_font("Helvetica", "B", 14)
+            self.set_text_color(15, 23, 42)
+            self.set_fill_color(226, 232, 240)
+            self.cell(0, 10, f"  {title}", new_x="LMARGIN", new_y="NEXT", fill=True)
+            self.ln(4)
 
-    def write_finding(
-        self, label: str, value: str, severity: str = ""
-    ) -> None:
-        self.set_font("Helvetica", "B", 10)
-        self.set_text_color(55, 65, 81)
-        badge = self.severity_badge(severity) if severity else ""
-        self.cell(0, 6, f"{badge} {label}", new_x="LMARGIN", new_y="NEXT")
-        self.set_font("Helvetica", "", 9)
-        self.set_text_color(107, 114, 128)
-        self.multi_cell(0, 5, value)
-        self.ln(2)
+        def severity_badge(self, severity: str) -> str:
+            sev = severity.upper()
+            if sev == "CRITICAL":
+                return "[ CRITICAL ]"
+            elif sev == "HIGH":
+                return "[ HIGH ]"
+            elif sev == "MEDIUM":
+                return "[ MEDIUM ]"
+            elif sev == "LOW":
+                return "[ LOW ]"
+            return "[ INFO ]"
 
-    def write_table(
-        self, headers: list[str], rows: list[list[str]], col_widths: Optional[list[int]] = None
-    ) -> None:
-        if not rows:
-            return
-        if col_widths is None:
-            col_widths = [int(180 / len(headers))] * len(headers)
+        def write_finding(
+            self, label: str, value: str, severity: str = ""
+        ) -> None:
+            self.set_font("Helvetica", "B", 10)
+            self.set_text_color(55, 65, 81)
+            badge = self.severity_badge(severity) if severity else ""
+            self.cell(0, 6, f"{badge} {label}", new_x="LMARGIN", new_y="NEXT")
+            self.set_font("Helvetica", "", 9)
+            self.set_text_color(107, 114, 128)
+            self.multi_cell(0, 5, value)
+            self.ln(2)
 
-        # Header row
-        self.set_font("Helvetica", "B", 8)
-        self.set_fill_color(15, 23, 42)
-        self.set_text_color(255, 255, 255)
-        for i, header in enumerate(headers):
-            w = col_widths[i] if i < len(col_widths) else 40
-            self.cell(w, 7, header, border=1, fill=True, align="C")
-        self.ln()
+        def write_table(
+            self, headers: list[str], rows: list[list[str]], col_widths: Optional[list[int]] = None
+        ) -> None:
+            if not rows:
+                return
+            if col_widths is None:
+                col_widths = [int(180 / len(headers))] * len(headers)
 
-        # Data rows
-        self.set_font("Helvetica", "", 7)
-        self.set_text_color(55, 65, 81)
-        for row in rows:
-            for i, cell_val in enumerate(row):
+            # Header row
+            self.set_font("Helvetica", "B", 8)
+            self.set_fill_color(15, 23, 42)
+            self.set_text_color(255, 255, 255)
+            for i, header in enumerate(headers):
                 w = col_widths[i] if i < len(col_widths) else 40
-                self.cell(w, 5, str(cell_val), border=1)
+                self.cell(w, 7, header, border=1, fill=True, align="C")
             self.ln()
-        self.ln(3)
+
+            # Data rows
+            self.set_font("Helvetica", "", 7)
+            self.set_text_color(55, 65, 81)
+            for row in rows:
+                for i, cell_val in enumerate(row):
+                    w = col_widths[i] if i < len(col_widths) else 40
+                    self.cell(w, 5, str(cell_val), border=1)
+                self.ln()
+            self.ln(3)
 
 
 def generate_pdf_report(report: dict, output_path: Path) -> Path:
