@@ -91,9 +91,18 @@ Error: FastAPI + uvicorn are required for server mode.
 ```bash
 git clone https://github.com/Yash-Patil-1/reconprobe.git
 cd reconprobe
-pip install -e "."         # Core only
+
+# Create venv
+python3 -m venv ~/venvs/reconprobe
+ 
+# Activate it
+source ~/venvs/reconprobe/bin/activate
+ 
+# Install
+pip install "reconprobe[.]"       # Core only
 # or
-pip install -e ".[full]"   # Everything
+pip install "reconprobe[full]"    # Everything
+  
 ```
 
 ### Docker (optional)
