@@ -39,7 +39,6 @@ RUN pip install --no-cache-dir \
 
 # Copy source
 COPY reconprobe/ ./reconprobe/
-COPY tests/ ./tests/
 
 # Verify imports
 RUN python -c "import reconprobe; print(f'ReconProbe v{reconprobe.__version__}')"
