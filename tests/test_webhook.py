@@ -6,6 +6,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+pytest.importorskip("aiohttp", reason="Requires aiohttp (install with: pip install reconprobe[webhooks])")
+
 from reconprobe.webhook import (
     ScanResultSummary,
     SlackConfig,
