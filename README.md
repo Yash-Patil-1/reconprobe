@@ -53,7 +53,7 @@ ReconProbe is a comprehensive, modular reconnaissance framework that automates t
 
 ## Installation
 
-### Universal install (works on every OS)
+<!-- ### Universal install (works on every OS)
 
 ```bash
 pip install reconprobe
@@ -85,7 +85,7 @@ $ reconprobe example.com --serve
 Error: FastAPI + uvicorn are required for server mode.
   Install with: pip install reconprobe[api]
 ```
-
+-->
 ### From source
 
 ```bash
