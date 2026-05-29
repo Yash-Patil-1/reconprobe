@@ -635,6 +635,7 @@ def export_findings_xlsx(report: dict, output_path: Path) -> None:
 
     # ── Summary Sheet ──
     ws_summary = wb.active
+    assert ws_summary is not None, "Workbook must have an active sheet"
     ws_summary.title = "Summary"
     summary_data = [
         ("Target Domain", report.get("target", {}).get("domain", "")),

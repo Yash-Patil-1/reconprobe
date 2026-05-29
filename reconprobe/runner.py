@@ -1365,7 +1365,7 @@ async def run_scan(
             task = progress.add_task("Building MSF .rc script...", total=None)
 
             # Prepare scan results dict
-            all_scan_results = {
+            all_scan_results: dict[str, Any] = {
                 "scanner_data": {},
                 "exploit_data": exploit_report,
             }
