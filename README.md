@@ -53,9 +53,17 @@ ReconProbe is a comprehensive, modular reconnaissance framework that automates t
 
 ## Installation
 
-<!-- ### Universal install (works on every OS)
+### Universal install (works on every OS)
+
+> **⚠️ Note for Kali Linux / Debian 12+:** System-wide `pip install` is blocked to protect the OS.
+> Always use a **virtual environment** as shown below.
 
 ```bash
+# Create and activate a virtual environment
+python3 -m venv ~/venvs/reconprobe
+source ~/venvs/reconprobe/bin/activate
+
+# Install from PyPI
 pip install reconprobe
 ```
 
@@ -63,11 +71,16 @@ That's it — works on **Linux, macOS, and Windows** with just **Python 3.10+**.
 
 The core install is intentionally lightweight — only pure-Python dependencies (httpx, rich, beautifulsoup4, dnspython, pyyaml). No Docker, no system packages, no browsers required.
 
-### Install with optional extras
+> 💡 **Tip:** Add `~/venvs/reconprobe/bin` to your PATH or create an alias so you can run `reconprobe` from anywhere.
+
+#### Install with optional extras
 
 ReconProbe uses **optional dependency groups** so you only install what you need:
 
 ```bash
+# Activate venv first (if not already active)
+source ~/venvs/reconprobe/bin/activate
+
 # Install everything
 pip install "reconprobe[full]"
 
@@ -85,25 +98,26 @@ $ reconprobe example.com --serve
 Error: FastAPI + uvicorn are required for server mode.
   Install with: pip install reconprobe[api]
 ```
--->
 ### From source
 
 ```bash
 git clone https://github.com/Yash-Patil-1/reconprobe.git
 cd reconprobe
 
-# Create venv
-python3 -m venv ~/venvs/reconprobe
- 
-# Activate it
-source ~/venvs/reconprobe/bin/activate
- 
-# Install
-pip install "reconprobe[.]"       # Core only
+# Create and activate a virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install from local source
+pip install -e .              # Core only
 # or
-pip install "reconprobe[full]"    # Everything
-  
+pip install -e ".[full]"      # Everything (extras)
+
+# Verify it works
+reconprobe --version
 ```
+
+> 💡 **Tip:** Add `reconprobe/venv/bin` to your PATH or create an alias so you can run `reconprobe` from anywhere.
 
 ### Docker (optional)
 
